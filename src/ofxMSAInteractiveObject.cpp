@@ -79,7 +79,7 @@ void ofxMSAInteractiveObject::registerMouseEvents(){
 
 void ofxMSAInteractiveObject::unregisterMouseEvents(){
     if(!bRegisteredForMouseEvents) {
-        return; // already registered.
+        return; // already unregistered.
     }
     bRegisteredForMouseEvents = false;
     ofRemoveListener(ofEvents().mousePressed, this, &ofxMSAInteractiveObject::_mousePressed, OF_EVENT_ORDER_BEFORE_APP);
