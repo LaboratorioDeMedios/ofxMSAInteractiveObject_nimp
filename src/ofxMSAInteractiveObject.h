@@ -46,6 +46,8 @@ public:
 	void enableAllEvents();				// enable all event callbacks
 	void disableAllEvents();			// disable all event callbacks
 
+    void registerMouseEvents();         // call this if object should receive mouse events with priority before App
+    void unregisterMouseEvents();       // call this if object doesn't need to receive mouse events with priority before App (default)
 	void enableMouseEvents();			// call this if object should receive mouse events
 	void disableMouseEvents();			// call this if object doesn't need to receive mouse events (default)
 
@@ -79,14 +81,14 @@ public:
 	virtual void exit()		{}	// called when app quites
 
 	// these behave very similar to those in flash
-	virtual void onRollOver(int x, int y)					{}		// called when mouse enters object x, y, width, height
-	virtual void onRollOut()								{}		// called when mouse leaves object x, y, width, height
-	virtual void onMouseMove(int x, int y)					{}		// called when mouse moves while over object x, y, width, height
-	virtual void onDragOver(int x, int y, int button)		{}		// called when mouse moves while over object and button is down
-	virtual void onDragOutside(int x, int y, int button)	{}		// called when mouse moves while outside the object after being clicked on it
-	virtual void onPress(int x, int y, int button)			{}		// called when mouse presses while over object
-	virtual void onRelease(int x, int y, int button)		{}		// called when mouse releases while over object
-	virtual void onReleaseOutside(int x, int y, int button)	{}		// called when mouse releases outside of object after being pressed on object
+	virtual void onRollOver(ofMouseEventArgs &e)		{}		// called when mouse enters object x, y, width, height
+	virtual void onRollOut(ofMouseEventArgs &e)			{}		// called when mouse leaves object x, y, width, height
+	virtual void onMouseMove(ofMouseEventArgs &e)		{}		// called when mouse moves while over object x, y, width, height
+	virtual void onDragOver(ofMouseEventArgs &e)		{}		// called when mouse moves while over object and button is down
+	virtual void onDragOutside(ofMouseEventArgs &e)     {}		// called when mouse moves while outside the object after being clicked on it
+	virtual void onPress(ofMouseEventArgs &e)			{}		// called when mouse presses while over object
+	virtual void onRelease(ofMouseEventArgs &e)         {}		// called when mouse releases while over object
+	virtual void onReleaseOutside(ofMouseEventArgs &e)	{}		// called when mouse releases outside of object after being pressed on object
 
 	virtual void keyPressed( int key ){}
 	virtual void keyReleased( int key ){}
@@ -99,10 +101,10 @@ public:
     void _draw(ofEventArgs &e);
 	void _exit(ofEventArgs &e);
 
-	void _mouseMoved(ofMouseEventArgs &e);
-	void _mousePressed(ofMouseEventArgs &e);
-	void _mouseDragged(ofMouseEventArgs &e);
-	void _mouseReleased(ofMouseEventArgs &e);
+	bool _mouseMoved(ofMouseEventArgs &e);
+	bool _mousePressed(ofMouseEventArgs &e);
+	bool _mouseDragged(ofMouseEventArgs &e);
+	bool _mouseReleased(ofMouseEventArgs &e);
 
 	void _keyPressed(ofKeyEventArgs &e);
 	void _keyReleased(ofKeyEventArgs &e);
@@ -113,5 +115,6 @@ protected:
 	bool		_mouseOver;
 	bool		_mouseDown;
 	ofRectangle	oldRect;
+    bool bRegisteredForMouseEvents;
 };
 

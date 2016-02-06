@@ -38,6 +38,8 @@ ofxMSAInteractiveObject::ofxMSAInteractiveObject() {
 	_mouseDown	= false;
 	enabled		= true;
 	verbose		= false;
+    
+    bRegisteredForMouseEvents = false;
 	
 	enableAppEvents();
 	disableMouseEvents();
@@ -64,6 +66,27 @@ void ofxMSAInteractiveObject::disableAllEvents() {
 	disableAppEvents();
 }
 
+void ofxMSAInteractiveObject::registerMouseEvents(){
+    if(bRegisteredForMouseEvents == true) {
+        return; // already registered.
+    }
+    bRegisteredForMouseEvents = true;
+    ofAddListener(ofEvents().mousePressed, this, &ofxMSAInteractiveObject::_mousePressed, OF_EVENT_ORDER_BEFORE_APP);
+    ofAddListener(ofEvents().mouseMoved, this, &ofxMSAInteractiveObject::_mouseMoved, OF_EVENT_ORDER_BEFORE_APP);
+    ofAddListener(ofEvents().mouseDragged, this, &ofxMSAInteractiveObject::_mouseDragged, OF_EVENT_ORDER_BEFORE_APP);
+    ofAddListener(ofEvents().mouseReleased, this, &ofxMSAInteractiveObject::_mouseReleased, OF_EVENT_ORDER_BEFORE_APP);
+}
+
+void ofxMSAInteractiveObject::unregisterMouseEvents(){
+    if(!bRegisteredForMouseEvents) {
+        return; // already registered.
+    }
+    bRegisteredForMouseEvents = false;
+    ofRemoveListener(ofEvents().mousePressed, this, &ofxMSAInteractiveObject::_mousePressed, OF_EVENT_ORDER_BEFORE_APP);
+    ofRemoveListener(ofEvents().mouseMoved, this, &ofxMSAInteractiveObject::_mouseMoved, OF_EVENT_ORDER_BEFORE_APP);
+    ofRemoveListener(ofEvents().mouseDragged, this, &ofxMSAInteractiveObject::_mouseDragged, OF_EVENT_ORDER_BEFORE_APP);
+    ofRemoveListener(ofEvents().mouseReleased, this, &ofxMSAInteractiveObject::_mouseReleased, OF_EVENT_ORDER_BEFORE_APP);
+}
 
 void ofxMSAInteractiveObject::enableMouseEvents() {
 	ofAddListener(ofEvents().mousePressed, this, &ofxMSAInteractiveObject::_mousePressed);
@@ -178,7 +201,7 @@ void ofxMSAInteractiveObject::_exit(ofEventArgs &e) {
 }
 
 
-void ofxMSAInteractiveObject::_mouseMoved(ofMouseEventArgs &e) {
+bool ofxMSAInteractiveObject::_mouseMoved(ofMouseEventArgs &e) {
 	int x = e.x;
 	int y = e.y;
 	int button = e.button;
@@ -189,19 +212,22 @@ void ofxMSAInteractiveObject::_mouseMoved(ofMouseEventArgs &e) {
 	_mouseY = y;
 	
 	if(hitTest(x, y)) {						// if mouse is over the object
-		if(!_mouseOver) {						// if wasn't over previous frame
-			onRollOver(x, y);						// call onRollOver
-			_mouseOver = true;						// update flag
+		if(!_mouseOver) {					// if wasn't over previous frame
+			onRollOver(e);                  // call onRollOver
+			_mouseOver = true;				// update flag
 		}
-		onMouseMove(x, y);						// and trigger onMouseMove
+		onMouseMove(e);                     // and trigger onMouseMove
+        return true;
+        
 	} else if(_mouseOver) {					// if mouse is not over the object, but the flag is true (From previous frame)
-		onRollOut();							// call onRollOut
-		_mouseOver = false;						// update flag
+		onRollOut(e);                       // call onRollOut
+		_mouseOver = false;					// update flag
 	}
+    return false;
 }
 
 
-void ofxMSAInteractiveObject::_mousePressed(ofMouseEventArgs &e) {
+bool ofxMSAInteractiveObject::_mousePressed(ofMouseEventArgs &e) {
 	int x = e.x;
 	int y = e.y;
 	int button = e.button;
@@ -214,16 +240,18 @@ void ofxMSAInteractiveObject::_mousePressed(ofMouseEventArgs &e) {
 	_mouseButton = button;
 	
 	if(hitTest(x, y)) {						// if mouse is over
-		if(!_mouseDown) {						 // if wasn't down previous frame
-			onPress(x, y, button);					// call onPress
-			_mouseDown = true;						// update flag
+		if(!_mouseDown) {                   // if wasn't down previous frame
+			onPress(e);                     // call onPress
+			_mouseDown = true;              // update flag
 		}
+        return true;
 	} else {								// if mouse is not over
 		// do nothing
+        return false;
 	}
 }
 
-void ofxMSAInteractiveObject::_mouseDragged(ofMouseEventArgs &e) {
+bool ofxMSAInteractiveObject::_mouseDragged(ofMouseEventArgs &e) {
 	int x = e.x;
 	int y = e.y;
 	int button = e.button;
@@ -236,23 +264,24 @@ void ofxMSAInteractiveObject::_mouseDragged(ofMouseEventArgs &e) {
 	_mouseButton = button;
 
 	if(hitTest(x, y)) {						// if mouse is over the object
-		if(!_mouseOver) {						// if wasn't over previous frame
-			//				onPress(x, y);							// call onPress - maybe not
-			_mouseOver = true;						// update flag
+		if(!_mouseOver) {					// if wasn't over previous frame
+//				onPress(x, y);					// call onPress - maybe not
+			_mouseOver = true;				// update flag
 		}
-		onDragOver(x, y, button);				// and trigger onDragOver
+		onDragOver(e);                      // and trigger onDragOver
 	} else {
 		if(_mouseOver) {					// if mouse is not over the object, but the flag is true (From previous frame)
-			onRollOut();							// call onRollOut
-			_mouseOver = false;						// update flag
+			onRollOut(e);                   // call onRollOut
+			_mouseOver = false;				// update flag
 		}
 		if(_mouseDown) {
-			onDragOutside(x, y, button);
+			onDragOutside(e);
 		}
 	}
+    return false;
 }
 
-void ofxMSAInteractiveObject::_mouseReleased(ofMouseEventArgs &e) {
+bool ofxMSAInteractiveObject::_mouseReleased(ofMouseEventArgs &e) {
 	int x = e.x;
 	int y = e.y;
 	int button = e.button;
@@ -265,11 +294,13 @@ void ofxMSAInteractiveObject::_mouseReleased(ofMouseEventArgs &e) {
 	_mouseButton = button;
 	
 	if(hitTest(x, y)) {
-		onRelease(x, y, button);
+		onRelease(e);
 	} else {
-		if(_mouseDown) onReleaseOutside(x, y, button);
+		if(_mouseDown) onReleaseOutside(e);
 	}
 	_mouseDown = false;
+    
+    return false;
 }
 
 
